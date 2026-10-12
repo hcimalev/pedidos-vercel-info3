@@ -1,36 +1,21 @@
-// ============================================================================
-//  MISIONES — Sistema de Pedidos y Clientes · Informática III (Grupo 1301)
-// ============================================================================
-//  Este es el ÚNICO archivo de lógica que vas a modificar.
-//
-//  Cada función está "vacía" a propósito. Tu sitio publicado en Vercel tiene un
-//  panel de verificación que corre casos de prueba contra estas funciones y te
-//  dice cuál falla, qué esperaba y qué obtuvo. Lee el caso que falla ANTES de
-//  cambiar código: así se trabaja con pruebas unitarias (lo verás en 3.4).
-//
-//  Puedes verificar sin publicar con:  npm run verificar
-//
-//  Orden recomendado: 1 → 2 → 3 → 4 → 5. La 6 es para Destacado.
-// ============================================================================
 
 import { ESTADOS } from './datos.js'
 
+// MISIÓN 1 — Calcular el total del pedido
 export function totalPedido(pedido) {
-const items = pedido.items || []
-const descuento = pedido.descuento || 0
+  const items = pedido.items || []
+  const descuento = pedido.descuento || 0
 
-const subtotal = items.reduce((suma, item) => {
-return suma + item.cantidad * item.precioUnitario
-}, 0)
+  const subtotal = items.reduce((suma, item) => {
+    return suma + item.cantidad * item.precioUnitario
+  }, 0)
 
-const total = subtotal * (1 - descuento)
+  const total = subtotal * (1 - descuento)
 
-return Math.round(total * 100) / 100
+  return Math.round((total + Number.EPSILON) * 100) / 100
 }
 
-
-
-
+// MISIÓN 2 — Validar transición de estados
 export function puedeTransicionar(actual, nuevo) {
   const indiceActual = ESTADOS.indexOf(actual)
   const indiceNuevo = ESTADOS.indexOf(nuevo)
@@ -38,9 +23,7 @@ export function puedeTransicionar(actual, nuevo) {
   return indiceActual !== -1 && indiceNuevo === indiceActual + 1
 }
 
-// ----------------------------------------------------------------------------
-// MISIÓN 3 · RF1 — ¿Los datos del cliente son válidos?
-
+// MISIÓN 3 — Validar datos del cliente
 export function validarCliente(cliente) {
   const errores = []
 
@@ -63,10 +46,7 @@ export function validarCliente(cliente) {
   return errores
 }
 
-// ----------------------------------------------------------------------------
-// MISIÓN 4 · RF5 — ¿Cuántos pedidos hay en cada estado?
-// ----------------------------------------------------------------------------
-/
+// MISIÓN 4 — Contar pedidos por estado
 export function resumenPorEstado(pedidos) {
   const resumen = {}
 
@@ -83,9 +63,7 @@ export function resumenPorEstado(pedidos) {
   return resumen
 }
 
-// ----------------------------------------------------------------------------
-// MISIÓN 5 · RF5 — Buscar pedidos por nombre de cliente
-
+// MISIÓN 5 — Buscar pedidos por nombre de cliente
 export function buscarPedidos(pedidos, texto) {
   const normalizar = (valor) =>
     String(valor ?? '')
@@ -104,28 +82,21 @@ export function buscarPedidos(pedidos, texto) {
   )
 }
 
-// ----------------------------------------------------------------------------
-// MISIÓN 6 · DESTACADO — Los mejores clientes
-
+// MISIÓN 6 — Obtener los mejores clientes
 export function topClientes(pedidos, n) {
-  const gastos = {}
+  const gastos = new Map()
 
   for (const pedido of pedidos) {
     const cliente = pedido.cliente
     const total = totalPedido(pedido)
 
-    if (!Object.prototype.hasOwnProperty.call(gastos, cliente)) {
-      gastos[cliente] = 0
-    }
-
-    gastos[cliente] += total
+    gastos.set(cliente, (gastos.get(cliente) || 0) + total)
   }
 
-  return Object.entries(gastos)
-    .map(([cliente, total]) => ({
-      cliente,
-      total: Math.round(total * 100) / 100
-    }))
+  return Array.from(gastos, ([cliente, total]) => ({
+    cliente,
+    total: Math.round((total + Number.EPSILON) * 100) / 100
+  }))
     .sort((a, b) =>
       b.total - a.total ||
       a.cliente.localeCompare(b.cliente, 'es', { sensitivity: 'base' })
